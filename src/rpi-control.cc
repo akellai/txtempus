@@ -112,9 +112,9 @@ double GPIO::StartClock(double requested_freq) {
   // find lowest jitter opportunity first.
 
   static const struct { int src; double frequency; } kClockSources[] = {
-    { 5, 1000.0e6 },   // PLLC
-    { 6,  500.0e6 },   // PLLD
-    { 7,  216.0e6 },   // HDMI  <- this can be problematic if monitor connected
+  //  { 5, 1000.0e6 },   // PLLC
+  //  { 6,  500.0e6 },   // PLLD
+  //  { 7,  216.0e6 },   // HDMI  <- this can be problematic if monitor connected
     { 1,   19.2e6 },   // regular oscillator
   };
 
@@ -126,8 +126,8 @@ double GPIO::StartClock(double requested_freq) {
     double division = kClockSources[i].frequency / requested_freq;
     if (division < 2 || division > 4095) continue;
     int test_divi = (int) division;
-    int test_divf = (division - test_divi) * 1024;
-    double freq = kClockSources[i].frequency / (test_divi + test_divf/1024.0);
+    int test_divf = (division - test_divi) * 4096;
+    double freq = kClockSources[i].frequency / (test_divi + test_divf/4096.0);
     double error = fabsl(requested_freq - freq);
     if (error >= smallest_error_so_far) continue;
     smallest_error_so_far = error;
@@ -164,11 +164,11 @@ double GPIO::StartClock(double requested_freq) {
   fprintf(stderr, "Choose clock %d at %gHz / %.3f = %.3f\n",
           kClockSources[best_clock_source].src,
           kClockSources[best_clock_source].frequency,
-          divI + divF/1024.0,
-          kClockSources[best_clock_source].frequency / (divI + divF/1024.0));
+          divI + divF/4096.0,
+          kClockSources[best_clock_source].frequency / (divI + divF/4096.0));
 #endif
 
-  return kClockSources[best_clock_source].frequency / (divI + divF/1024.0);
+  return kClockSources[best_clock_source].frequency / (divI + divF/4096.0);
 }
 
 void GPIO::StopClock() {
